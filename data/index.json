@@ -1,0 +1,22 @@
+{
+  "kaden": {
+    "display_name": "kaden",
+    "face_path": "data\\faces\\kaden\\face.jpg",
+    "embedding_path": "data\\faces\\kaden\\embedding.npy"
+  },
+  "jake": {
+    "display_name": "jake",
+    "face_path": "data\\faces\\jake\\face.jpg",
+    "embedding_path": "data\\faces\\jake\\embedding.npy"
+  },
+  "sarah": {
+    "display_name": "sarah",
+    "face_path": "data\\faces\\sarah\\face.jpg",
+    "embedding_path": "data\\faces\\sarah\\embedding.npy"
+  },
+  "jim": {
+    "display_name": "jim",
+    "face_path": "data\\faces\\jim\\face.jpg",
+    "embedding_path": "data\\faces\\jim\\embedding.npy"
+  }
+}

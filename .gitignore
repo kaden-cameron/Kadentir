@@ -1,0 +1,25 @@
+# Virtual environment
+venv/
+.venv/
+env/
+
+# Data (optional: remove if you want to track encodings)
+# data/encodings/
+# data/images/
+# data/face_index.json
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
+
+# Nested repo / clone (do not track)
+Kadentir/
+
+# IDE (launch.json and settings.json are committed so you can run with F5 in Cursor)
+.idea/
+*.swp
+*~

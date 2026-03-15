@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "faces": [
+    {
+      "id": "ecf78ff5-22e0-45e8-b10b-07b8ae5de389",
+      "name": "kaden",
+      "encoding_path": "C:\\Users\\kadee\\Documents\\Face_Recognition_Spyware\\data\\encodings\\ecf78ff5-22e0-45e8-b10b-07b8ae5de389.npy",
+      "image_path": "C:\\Users\\kadee\\Documents\\Face_Recognition_Spyware\\data\\images\\ecf78ff5-22e0-45e8-b10b-07b8ae5de389.jpg",
+      "created_at": "2026-02-17T00:51:17.473352Z"
+    },
+    {
+      "id": "5242293e-25fd-4777-a767-d85902764fb3",
+      "name": "jov",
+      "encoding_path": "C:\\Users\\kadee\\Documents\\Face_Recognition_Spyware\\data\\encodings\\5242293e-25fd-4777-a767-d85902764fb3.npy",
+      "image_path": "C:\\Users\\kadee\\Documents\\Face_Recognition_Spyware\\data\\images\\5242293e-25fd-4777-a767-d85902764fb3.jpg",
+      "created_at": "2026-02-17T00:51:46.317010Z"
+    }
+  ]
+}
