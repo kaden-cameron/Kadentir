@@ -241,11 +241,9 @@ class FaceRecognitionApp(QMainWindow):
         if self.current_face_locations:
             self.detector.draw_face_boxes(frame, self.current_face_locations)
             self.save_face_btn.setEnabled(True)
-            # Run MediaPipe landmarker on full-resolution frame so mesh is visible and aligned
-            face_landmarks = self.detector.detect_face_landmarks(frame)
-            self.current_face_landmarks = face_landmarks
-            if face_landmarks and getattr(face_landmarks, "face_landmarks", None):
-                self.detector.draw_face_landmarks(frame, face_landmarks)
+            # Draw blue face mesh (tessellation + contours) per face using crop so MediaPipe always sees a face
+            for face_loc in self.current_face_locations:
+                self.detector.draw_face_mesh_on_frame(frame, face_loc, padding=30)
         else:
             self.save_face_btn.setEnabled(False)
             self.current_face_landmarks = None
@@ -293,19 +291,12 @@ class FaceRecognitionApp(QMainWindow):
         if self.current_face_locations:
             image = self.detector.draw_face_boxes(image, self.current_face_locations)
             self.save_face_btn.setEnabled(True)
-            # If no landmarks from full-image detect, run landmarker explicitly (same as live feed)
-            if not self.current_face_landmarks or not getattr(
-                self.current_face_landmarks, "face_landmarks", None
-            ):
-                self.current_face_landmarks = self.detector.detect_face_landmarks(image)
+            # Draw blue face mesh (tessellation + contours) per face using crop
+            for face_loc in self.current_face_locations:
+                self.detector.draw_face_mesh_on_frame(image, face_loc, padding=30)
         else:
             self.save_face_btn.setEnabled(False)
             QMessageBox.information(self, "No Faces", "No faces detected in image")
-
-        if self.current_face_landmarks and getattr(
-            self.current_face_landmarks, "face_landmarks", None
-        ):
-            image = self.detector.draw_face_landmarks(image, self.current_face_landmarks)
 
         if self.current_face_locations:
             first_face = self.current_face_locations[0]

@@ -8,7 +8,7 @@ import cv2
 import numpy as np
 import face_recognition
 from pathlib import Path
-from typing import List, Tuple, Optional, Any
+from typing import List, Tuple, Optional, Any, Sequence
 
 # MediaPipe: use tasks API (0.10+)
 try:
@@ -103,36 +103,36 @@ class FaceDetector:
             cv2.rectangle(image, (left, top), (right, bottom), (0, 255, 0), 2)
         return image
 
-    def _draw_tessellation_cv2(
-        self, image: np.ndarray, face_landmark_results: Any
+    def _draw_connections_cv2(
+        self,
+        image: np.ndarray,
+        face_landmark_results: Any,
+        connections: Sequence[Any],
+        color: Tuple[int, int, int],
+        thickness: int = 1,
     ) -> None:
-        """Draw tessellation lines with cv2 from normalized landmarks (reliable fallback)."""
-        if not _HAS_TASKS or face_landmark_results is None:
+        """Draw landmark connections (tessellation or contours) with cv2. Coords are normalized [0,1] for image."""
+        if not _HAS_TASKS or face_landmark_results is None or not connections:
             return
         landmarks_per_face = getattr(face_landmark_results, "face_landmarks", None)
         if not landmarks_per_face:
             return
         h, w = image.shape[:2]
-        color = (255, 255, 0)  # BGR cyan
-        thickness = 1
         for landmark_list in landmarks_per_face:
             if not landmark_list:
                 continue
-            # Build index -> (px, py) for normalized coords in [0, 1]
             idx_to_px = {}
             for idx, lm in enumerate(landmark_list):
                 x = getattr(lm, "x", None)
                 y = getattr(lm, "y", None)
                 if x is None or y is None:
                     continue
-                # Clamp and convert to pixel
                 x = max(0.0, min(1.0, x))
                 y = max(0.0, min(1.0, y))
                 px = int(x * (w - 1)) if w else 0
                 py = int(y * (h - 1)) if h else 0
                 idx_to_px[idx] = (px, py)
-            # Draw each tessellation edge
-            for conn in fl.FaceLandmarksConnections.FACE_LANDMARKS_TESSELATION:
+            for conn in connections:
                 i, j = conn.start, conn.end
                 if i in idx_to_px and j in idx_to_px:
                     cv2.line(
@@ -145,14 +145,54 @@ class FaceDetector:
                     )
 
     def draw_face_landmarks(self, image: np.ndarray, face_landmark_results: Any) -> np.ndarray:
-        """Draw MediaPipe face mesh tessellation lines in-place (triangular mesh overlay)."""
+        """Draw MediaPipe face mesh (tessellation + contours) in blue, in-place."""
         if not _HAS_TASKS or face_landmark_results is None:
             return image
         if not getattr(face_landmark_results, "face_landmarks", None):
             return image
-        # Prefer manual cv2 drawing so mesh always shows (no visibility filtering)
-        self._draw_tessellation_cv2(image, face_landmark_results)
+        blue_bgr = (255, 0, 0)  # Blue
+        self._draw_connections_cv2(
+            image,
+            face_landmark_results,
+            fl.FaceLandmarksConnections.FACE_LANDMARKS_TESSELATION,
+            blue_bgr,
+            thickness=1,
+        )
+        self._draw_connections_cv2(
+            image,
+            face_landmark_results,
+            fl.FaceLandmarksConnections.FACE_LANDMARKS_CONTOURS,
+            blue_bgr,
+            thickness=2,
+        )
         return image
+
+    def draw_face_mesh_on_frame(
+        self,
+        frame: np.ndarray,
+        face_location: Tuple[int, int, int, int],
+        padding: int = 30,
+    ) -> None:
+        """
+        Crop face from frame, run MediaPipe on the crop, draw blue mesh + contours on crop, paste back.
+        Guarantees mesh is drawn whenever the crop contains a face (MediaPipe sees a clear face image).
+        """
+        if self._face_landmarker is None:
+            return
+        top, right, bottom, left = face_location
+        height, width = frame.shape[:2]
+        t = max(0, top - padding)
+        b = min(height, bottom + padding)
+        l = max(0, left - padding)
+        r = min(width, right + padding)
+        crop = frame[t:b, l:r].copy()
+        if crop.size == 0:
+            return
+        results = self.detect_face_landmarks(crop)
+        if results is None or not getattr(results, "face_landmarks", None):
+            return
+        self.draw_face_landmarks(crop, results)
+        frame[t:b, l:r] = crop
 
     def crop_face(
         self, image: np.ndarray, face_location: Tuple, padding: int = 20
